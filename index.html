@@ -1266,18 +1266,48 @@
   function handleOverlayClick(e) {
     if (e.target === document.getElementById('modalOverlay')) closeModal();
   }
-  function submitForm() {
+  async function submitForm() {
     const nome = document.getElementById('nome').value.trim();
     const email = document.getElementById('email').value.trim();
     const tel = document.getElementById('tel').value.trim();
+    const crm = document.getElementById('crm').value.trim();
+    const especialidade = document.getElementById('especialidade').value.trim();
+    const motivo = document.getElementById('motivo').value.trim();
+    const experiencia = document.querySelector('input[name="experiencia"]:checked')?.value || '';
+
     if (!nome || !email || !tel) {
       alert('Por favor, preencha nome, e-mail e telefone.');
       return;
     }
+
     const btn = document.querySelector('.btn-submit');
-    btn.textContent = '✓ Inscrição Enviada!';
-    btn.style.background = '#2a5c40';
-    setTimeout(() => { closeModal(); btn.textContent = '✉ Enviar Inscrição'; btn.style.background = ''; }, 2200);
+    btn.textContent = '⏳ Enviando...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, telefone: tel, crm, especialidade, experiencia, motivo })
+      });
+
+      if (res.ok) {
+        btn.textContent = '✓ Inscrição Enviada!';
+        btn.style.background = '#2a5c40';
+        setTimeout(() => {
+          closeModal();
+          btn.textContent = '✉ Enviar Inscrição';
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 2500);
+      } else {
+        throw new Error('Erro no servidor');
+      }
+    } catch (err) {
+      btn.textContent = '✉ Enviar Inscrição';
+      btn.disabled = false;
+      alert('Erro ao enviar. Tente novamente ou entre em contato diretamente.');
+    }
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
